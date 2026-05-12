@@ -12,3 +12,6 @@ compile_commands.json
 *.log
 *.bak
 *.swp
+
+# clangd etc.
+.cache
