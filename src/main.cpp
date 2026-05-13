@@ -96,7 +96,7 @@ int main(int argc, char const **argv) {
   }
 
   {
-    auto in_tape{FileTape::CreateNew(*conf, input_path, 100)};
+    auto in_tape{FileTape::CreateTemp(*conf, 100)};
     if (!in_tape) {
       std::cerr << in_tape.error();
       return 1;

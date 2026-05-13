@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <expected>
 #include <filesystem>
 #include <format>
@@ -7,6 +8,35 @@
 
 #include "tape/FileTape.hpp"
 #include "tape/ITape.hpp"
+
+FileTape::FileTape(FileTape &&other)
+    : FileTape(other.conf_, other.path_, std::move(other.f_), other.capacity_,
+               other.should_delete_) {
+  head_ = other.head_;
+
+  other.should_delete_ = false;
+}
+
+FileTape &FileTape::operator=(FileTape &&other) {
+  if (this != &other) {
+    conf_ = other.conf_;
+    path_ = other.path_;
+    f_ = std::move(other.f_);
+    should_delete_ = other.should_delete_;
+    head_ = other.head_;
+    capacity_ = other.capacity_;
+
+    other.should_delete_ = false;
+  }
+  return *this;
+}
+
+FileTape::~FileTape() {
+  if (should_delete_) {
+    std::error_code ec;
+    std::filesystem::remove(path_, ec);
+  }
+}
 
 std::expected<FileTape, std::string> FileTape::OpenExisting(TapeConfig conf,
                                                             std::filesystem::path const &path) {
@@ -21,11 +51,12 @@ std::expected<FileTape, std::string> FileTape::OpenExisting(TapeConfig conf,
     return std::unexpected{ec.message()};
   }
 
-  return FileTape(conf, std::move(f), capacity);
+  return FileTape(conf, path, std::move(f), capacity);
 }
 
-std::expected<FileTape, std::string>
-FileTape::CreateNew(TapeConfig conf, std::filesystem::path const &path, uint64_t capacity) {
+std::expected<FileTape, std::string> FileTape::CreateNew(TapeConfig conf,
+                                                         std::filesystem::path const &path,
+                                                         uint64_t capacity, bool should_delete) {
   {
     std::ofstream create{path, std::ios::binary};
     if (!create) {
@@ -44,11 +75,11 @@ FileTape::CreateNew(TapeConfig conf, std::filesystem::path const &path, uint64_t
     return std::unexpected{std::format("could not open new tape file {}", path.string())};
   }
 
-  return FileTape(conf, std::move(f), capacity);
+  return FileTape(conf, path, std::move(f), capacity, should_delete);
 }
 
 std::expected<FileTape, std::string> FileTape::CreateTemp(TapeConfig conf, uint64_t capacity) {
-  return FileTape::CreateNew(conf, "test.bin", capacity);
+  return FileTape::CreateNew(conf, std::filesystem::path{std::tmpnam(nullptr)}, capacity, true);
 }
 
 TapeCell FileTape::Read() {
