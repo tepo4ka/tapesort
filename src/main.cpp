@@ -2,6 +2,8 @@
 #include <format>
 #include <iostream>
 #include <optional>
+#include <print>
+#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -12,6 +14,7 @@
 #include <toml++/toml.hpp>
 
 #include "tape/Config.hpp"
+#include "tape/FileTape.hpp"
 
 template <typename TomlT, typename TargetT>
 std::expected<void, std::string> ReadField(toml::table const &tbl, std::string_view key,
@@ -91,4 +94,30 @@ int main(int argc, char const **argv) {
     std::cerr << conf.error();
     return 1;
   }
+
+  {
+    auto in_tape{FileTape::CreateNew(*conf, input_path, 100)};
+    if (!in_tape) {
+      std::cerr << in_tape.error();
+      return 1;
+    }
+
+    for (auto i : std::views::iota(1)) {
+      in_tape->Write(i);
+      if (!in_tape->MoveRight()) {
+        break;
+      }
+    }
+  }
+
+  auto out_tape{FileTape::OpenExisting(*conf, input_path)};
+  if (!out_tape) {
+    std::cerr << out_tape.error();
+    return 1;
+  }
+
+  std::println("{}", out_tape->Length());
+  do {
+    std::println("{}", out_tape->Read());
+  } while (out_tape->MoveRight());
 }
