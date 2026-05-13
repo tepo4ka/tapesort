@@ -16,10 +16,23 @@
 #include "tape/Config.hpp"
 #include "tape/FileTape.hpp"
 
+#include "sort/Config.hpp"
+
+std::expected<toml::table, std::string> ParseTOML(std::string_view path) {
+  auto const result{toml::parse_file(path)};
+  if (result.failed()) {
+    std::ostringstream os;
+    os << result.error();
+    return std::unexpected{os.str()};
+  }
+
+  return result.table();
+}
+
 template <typename TomlT, typename TargetT>
 std::expected<void, std::string> ReadField(toml::table const &tbl, std::string_view key,
                                            TargetT &target) {
-  auto const node{tbl[key]};
+  auto const node{tbl.at_path(key)};
   if (!node) {
     return {};
   }
@@ -33,38 +46,25 @@ std::expected<void, std::string> ReadField(toml::table const &tbl, std::string_v
   return {};
 }
 
-std::expected<TapeConfig, std::string> LoadConfig(toml::table const &tbl) {
+std::expected<TapeConfig, std::string> LoadTapeConfig(toml::table const &tbl) {
   TapeConfig cfg{};
-  return ReadField<size_t>(tbl, "RAMLimit, mit", cfg.RAMLimit)
+  return ReadField<size_t>(tbl, "tape.read_delay", cfg.ReadDelay)
       .and_then([&] {
-        return ReadField<int64_t>(tbl, "ReadDelay", cfg.ReadDelay);
+        return ReadField<int64_t>(tbl, "tape.write_delay", cfg.WriteDelay);
       })
       .and_then([&] {
-        return ReadField<int64_t>(tbl, "WriteDelay", cfg.WriteDelay);
-      })
-      .and_then([&] {
-        return ReadField<int64_t>(tbl, "MoveDelay", cfg.MoveDelay);
-      })
-      .and_then([&] {
-        return ReadField<int64_t>(tbl, "RewindDelay", cfg.RewindDelay);
+        return ReadField<int64_t>(tbl, "tape.move_delay", cfg.MoveDelay);
       })
       .transform([&] {
         return cfg;
       });
 }
 
-std::expected<TapeConfig, std::string> ResolveConfig(std::optional<std::string> const &conf_path) {
-  if (conf_path) {
-    auto const parse_result{toml::parse_file(*conf_path)};
-    if (parse_result.failed()) {
-      std::ostringstream error_desc;
-      error_desc << parse_result.error();
-      return std::unexpected{error_desc.str()};
-    }
-    return LoadConfig(parse_result.table());
-  } else {
-    return TapeConfig{};
-  }
+std::expected<SortConfig, std::string> LoadSortConfig(toml::table const &tbl) {
+  SortConfig cfg{};
+  return ReadField<int>(tbl, "sort.ram", cfg.RAMCells).transform([&] {
+    return cfg;
+  });
 }
 
 int main(int argc, char const **argv) {
@@ -74,8 +74,8 @@ int main(int argc, char const **argv) {
 
   auto const cli{
       lyra::help(show_help).description("External tape sorter.") |
-      lyra::opt(input_path, "in.txt").required()["-i"]["--input"]("Input tape file") |
-      lyra::opt(output_path, "out.txt").required()["-o"]["--output"]("Output tape file") |
+      lyra::opt(input_path, "in.bin").required()["-i"]["--input"]("Input tape file") |
+      lyra::opt(output_path, "out.bin").required()["-o"]["--output"]("Output tape file") |
       lyra::opt(conf_path, "conf.toml").optional()["-c"]["--config"]("Tape config file")};
   auto const cli_result{cli.parse({argc, argv})};
 
@@ -89,14 +89,27 @@ int main(int argc, char const **argv) {
     return 2;
   }
 
-  auto const conf{ResolveConfig(conf_path)};
-  if (!conf) {
-    std::cerr << conf.error();
+  std::expected<TapeConfig, std::string> tape_conf{};
+  std::expected<SortConfig, std::string> sort_conf{};
+
+  if (conf_path) {
+    auto const conf_tbl{ParseTOML(*conf_path)};
+    tape_conf = conf_tbl.and_then(LoadTapeConfig);
+    sort_conf = conf_tbl.and_then(LoadSortConfig);
+  }
+
+  if (!tape_conf) {
+    std::cerr << tape_conf.error() << '\n';
+    return 1;
+  }
+
+  if (!sort_conf) {
+    std::cerr << sort_conf.error() << '\n';
     return 1;
   }
 
   {
-    auto in_tape{FileTape::CreateTemp(*conf, 100)};
+    auto in_tape{FileTape::CreateTemp(*tape_conf, 100)};
     if (!in_tape) {
       std::cerr << in_tape.error();
       return 1;
@@ -110,7 +123,7 @@ int main(int argc, char const **argv) {
     }
   }
 
-  auto out_tape{FileTape::OpenExisting(*conf, input_path)};
+  auto out_tape{FileTape::OpenExisting(*tape_conf, input_path)};
   if (!out_tape) {
     std::cerr << out_tape.error();
     return 1;

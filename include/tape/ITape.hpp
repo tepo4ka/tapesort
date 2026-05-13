@@ -5,6 +5,7 @@
 
 using TapeCell = int32_t;
 
+// Magnetic tape simulator
 class ITape {
 public:
   virtual ~ITape() = default;
@@ -20,4 +21,8 @@ public:
 
   virtual size_t Length() const = 0;
   virtual size_t Position() const = 0;
+
+  // Following are helper functions which must use only operations defined above
+
+  
 };
