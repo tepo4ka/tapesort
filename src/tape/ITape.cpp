@@ -1,6 +1,6 @@
-#include <span>
-
 #include "tape/ITape.hpp"
+
+#include <span>
 
 std::span<TapeCell> ITape::ReadChunk(std::span<TapeCell> to) {
   for (size_t i{0}; i < to.size(); ++i) {

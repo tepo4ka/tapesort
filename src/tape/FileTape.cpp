@@ -1,3 +1,5 @@
+#include "tape/FileTape.hpp"
+
 #include <cstdio>
 #include <expected>
 #include <filesystem>

@@ -1,10 +1,10 @@
+#include "sort/ExternalSort.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <iterator>
 #include <queue>
 #include <ranges>
-
-#include "sort/ExternalSort.hpp"
 
 ExternalSort::ExternalSort(SortConfig conf, ITape *in, ITape *out)
     : conf_{conf}, in_{in}, out_{out} {
