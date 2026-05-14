@@ -2,7 +2,6 @@
 #include <format>
 #include <iostream>
 #include <optional>
-#include <print>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -132,10 +131,4 @@ int main(int argc, char const **argv) {
 
   ExternalSort sort{*sort_conf, &in_tape.value(), &out_tape.value()};
   sort.Sort();
-
-  out_tape->RewindLeft();
-  std::println("{}", out_tape->Length());
-  do {
-    std::print("{} ", out_tape->Read());
-  } while (out_tape->MoveRight());
 }
