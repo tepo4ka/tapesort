@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <print>
 #include <queue>
 #include <ranges>
 
@@ -22,16 +23,14 @@ std::vector<std::unique_ptr<ITape>> ExternalSort::SortChunks() {
   std::vector<TapeCell> ram(conf_.RAMCells);
 
   in_->RewindLeft();
-  std::span chunk{in_->ReadChunk(ram)};
-  while (chunk.size() > 0) {
+  do {
+    std::span chunk{in_->ReadChunk(ram)};
     std::ranges::sort(chunk);
     auto tape{conf_.NewTempTape(chunk.size())};
     auto written{tape->WriteChunk(chunk)};
     assert(written.size() == 0);
     runs.emplace_back(std::move(tape));
-
-    chunk = in_->ReadChunk(ram);
-  }
+  } while (!in_->AtRightBound());
 
   return runs;
 }

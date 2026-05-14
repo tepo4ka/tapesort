@@ -8,7 +8,6 @@
 #include <ios>
 #include <thread>
 
-#include "tape/FileTape.hpp"
 #include "tape/ITape.hpp"
 
 FileTape::FileTape(FileTape &&other)

@@ -6,7 +6,7 @@ std::span<TapeCell> ITape::ReadChunk(std::span<TapeCell> to) {
   for (size_t i{0}; i < to.size(); ++i) {
     to[i] = Read();
     if (!MoveRight()) {
-      return to.first(i);
+      return to.first(i + 1);
     }
   }
 

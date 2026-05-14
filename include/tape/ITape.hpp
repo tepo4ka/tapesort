@@ -23,14 +23,19 @@ public:
   virtual size_t Length() const = 0;
   virtual size_t Position() const = 0;
 
+public:
   // Following are helper functions which must use only operations defined above
 
-  // Reads up to `to.size()` cells into `to` and returns the portion of `to` that was populated. An
-  // empty span means end-of-tape.
+  // Reads up to `to.size()` cells into `to`, advancing the tape as cell are read, and returns the
+  // portion of `to` that was populated.
+  //
+  // The tape position is not restored.
   std::span<TapeCell> ReadChunk(std::span<TapeCell> to);
 
   // Write up to `from.size()` cells from `from` and returns the portion of `from` that wasn't
   // written. An empty span means that the write was successful.
+  //
+  // The tape position is not restored.
   std::span<TapeCell> WriteChunk(std::span<TapeCell> from);
 
   // Rewind the tape to its left boundary
