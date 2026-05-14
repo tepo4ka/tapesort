@@ -3,7 +3,6 @@
 #include <iostream>
 #include <optional>
 #include <print>
-#include <ranges>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -17,6 +16,7 @@
 #include "tape/FileTape.hpp"
 
 #include "sort/Config.hpp"
+#include "sort/ExternalSort.hpp"
 
 std::expected<toml::table, std::string> ParseTOML(std::string_view path) {
   auto const result{toml::parse_file(path)};
@@ -108,29 +108,34 @@ int main(int argc, char const **argv) {
     return 1;
   }
 
-  {
-    auto in_tape{FileTape::CreateTemp(*tape_conf, 100)};
-    if (!in_tape) {
-      std::cerr << in_tape.error();
-      return 1;
+  sort_conf->NewTempTape = [tape_conf = *tape_conf](uint64_t capacity) -> std::unique_ptr<ITape> {
+    auto tape{FileTape::CreateTemp(tape_conf, capacity)};
+    if (!tape) {
+      // FIXME
+      throw std::runtime_error(tape.error());
     }
 
-    for (auto i : std::views::iota(1)) {
-      in_tape->Write(i);
-      if (!in_tape->MoveRight()) {
-        break;
-      }
-    }
-  }
+    return std::make_unique<FileTape>(std::move(*tape));
+  };
 
-  auto out_tape{FileTape::OpenExisting(*tape_conf, input_path)};
-  if (!out_tape) {
-    std::cerr << out_tape.error();
+  auto in_tape{FileTape::OpenExisting(*tape_conf, input_path)};
+  if (!in_tape) {
+    std::cerr << in_tape.error() << '\n';
     return 1;
   }
 
+  auto out_tape{FileTape::CreateNew(*tape_conf, output_path, in_tape->Length())};
+  if (!out_tape) {
+    std::cerr << out_tape.error() << '\n';
+    return 1;
+  }
+
+  ExternalSort sort{*sort_conf, &in_tape.value(), &out_tape.value()};
+  sort.Sort();
+
+  out_tape->RewindLeft();
   std::println("{}", out_tape->Length());
   do {
-    std::println("{}", out_tape->Read());
+    std::print("{} ", out_tape->Read());
   } while (out_tape->MoveRight());
 }

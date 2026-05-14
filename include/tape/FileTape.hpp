@@ -11,7 +11,7 @@
 // Binary file format: <TapeCell><TapeCell>...<TapeCell>.
 //
 // This class owns its file stream.
-class FileTape : ITape {
+class FileTape : public ITape {
 public:
   FileTape() = delete;
   FileTape(FileTape &) = delete;
