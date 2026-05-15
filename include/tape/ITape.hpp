@@ -1,10 +1,14 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 #include <span>
 
 using TapeCell = int32_t;
+
+struct ReadChunkResult {
+  std::span<TapeCell> data;
+  bool eof;
+};
 
 // Magnetic tape simulator
 class ITape {
@@ -27,10 +31,11 @@ public:
   // Following are helper functions which must use only operations defined above
 
   // Reads up to `to.size()` cells into `to`, advancing the tape as cell are read, and returns the
-  // portion of `to` that was populated.
+  // portion of `to` that was populated alongside with EOF indicator which is true iff no further
+  // cells remain after the last returned element.
   //
   // The tape position is not restored.
-  std::span<TapeCell> ReadChunk(std::span<TapeCell> to);
+  ReadChunkResult ReadChunk(std::span<TapeCell> to);
 
   // Write up to `from.size()` cells from `from` and returns the portion of `from` that wasn't
   // written. An empty span means that the write was successful.

@@ -2,15 +2,15 @@
 
 #include <span>
 
-std::span<TapeCell> ITape::ReadChunk(std::span<TapeCell> to) {
+ReadChunkResult ITape::ReadChunk(std::span<TapeCell> to) {
   for (size_t i{0}; i < to.size(); ++i) {
     to[i] = Read();
     if (!MoveRight()) {
-      return to.first(i + 1);
+      return {to.first(i + 1), true};
     }
   }
 
-  return to;
+  return {to, false};
 }
 
 std::span<TapeCell> ITape::WriteChunk(std::span<TapeCell> from) {

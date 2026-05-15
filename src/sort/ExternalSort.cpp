@@ -12,7 +12,7 @@ ExternalSort::ExternalSort(SortConfig conf, ITape *in, ITape *out)
 }
 
 void ExternalSort::Sort() {
-  // It is not our task to create the correct output tape
+  // It is not our job to create the correct output tape
   assert(in_->Length() == out_->Length());
 
   if (in_->Length() == 0) {
@@ -29,14 +29,20 @@ std::vector<std::unique_ptr<ITape>> ExternalSort::SortChunks() {
   std::vector<TapeCell> ram(conf_.RAMCells);
 
   in_->RewindLeft();
-  do {
-    std::span chunk{in_->ReadChunk(ram)};
+  while (true) {
+    auto [chunk, eof] = in_->ReadChunk(ram);
+
     std::ranges::sort(chunk, kComp);
     auto tape{conf_.NewTempTape(chunk.size())};
     auto written{tape->WriteChunk(chunk)};
-    assert(written.size() == 0);
+    assert(written.empty());
+
     runs.emplace_back(std::move(tape));
-  } while (!in_->AtRightBound());
+
+    if (eof) {
+      break;
+    }
+  }
 
   return runs;
 }
