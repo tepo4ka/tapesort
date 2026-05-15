@@ -47,12 +47,12 @@ std::expected<void, std::string> ReadField(toml::table const &tbl, std::string_v
 
 std::expected<TapeConfig, std::string> LoadTapeConfig(toml::table const &tbl) {
   TapeConfig cfg{};
-  return ReadField<size_t>(tbl, "tape.read_delay", cfg.ReadDelay)
+  return ReadField<uint64_t>(tbl, "tape.read_delay", cfg.ReadDelay)
       .and_then([&] {
-        return ReadField<int64_t>(tbl, "tape.write_delay", cfg.WriteDelay);
+        return ReadField<uint64_t>(tbl, "tape.write_delay", cfg.WriteDelay);
       })
       .and_then([&] {
-        return ReadField<int64_t>(tbl, "tape.move_delay", cfg.MoveDelay);
+        return ReadField<uint64_t>(tbl, "tape.move_delay", cfg.MoveDelay);
       })
       .transform([&] {
         return cfg;
@@ -61,9 +61,13 @@ std::expected<TapeConfig, std::string> LoadTapeConfig(toml::table const &tbl) {
 
 std::expected<SortConfig, std::string> LoadSortConfig(toml::table const &tbl) {
   SortConfig cfg{};
-  return ReadField<int>(tbl, "sort.ram", cfg.RAMCells).transform([&] {
-    return cfg;
-  });
+  return ReadField<int>(tbl, "sort.ram", cfg.RAMCells)
+      .and_then([&] -> std::expected<SortConfig, std::string> {
+        if (cfg.RAMCells < 2) {
+          return std::unexpected{"need at least 2 RAM cells"};
+        }
+        return cfg;
+      });
 }
 
 int main(int argc, char const **argv) {
