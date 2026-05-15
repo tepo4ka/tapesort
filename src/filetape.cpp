@@ -24,6 +24,11 @@ struct PrintCommand {
       return;
     }
 
+    if (tape->Length() == 0) {
+      std::println("EMPTY");
+      return;
+    }
+
     do {
       std::print("{} ", tape->Read());
     } while (tape->MoveRight());
