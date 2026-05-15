@@ -14,3 +14,27 @@ cmake --build build
 #+begin_src bash
 ./build/tapesort [-?|-h|--help] <in.bin> <out.bin> [-c|--config <conf.toml>]
 #+end_src
+
+Example configuration (with default values):
+#+begin_src toml
+[sort]
+ram = 100 # how many tape cells can fit in the RAM
+
+[tape]
+# delays are in milliseconds
+read_delay = 10
+write_delay = 20
+move_delay = 5
+#+end_src
+
+You may also want to use the ~filetape~ utility to print the tape in human-readable format:
+
+#+begin_src bash
+./build/filetape print <tape.bin>
+#+end_src
+
+To generate random tape of specified size I suggest to create the file populated with random data directly, where ~N~ is the desired amount of cells:
+
+#+begin_src bash
+dd if=/dev/urandom of=rand.bin bs=4 count=N
+#+end_src
