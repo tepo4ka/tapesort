@@ -1,8 +1,13 @@
 #+title: External sort on Magnetic tape simulator
 #+author: Давид Чередник
 
-Implementation of an external multi-pass K-way merge sort with constrained RAM and sequential tape I/O interface.
+Implementation of an *external* multi-pass K-way merge sort with constrained RAM and sequential tape I/O interface.
 
+The tape consists of contiguous ~int32_t~ cells stored in a binary file. All operations are sequential and random access is not assumed by the sorting algorithm. Temporary tape files may be created during execution to store intermediate sorted runs.
+
+RAM constraint is strictly enforced: at no point does the algorithm exceed ~O(RAMCells)~ memory usage.
+
+This implementation is intended as a correct simulation of external merge sort under RAM and sequential tape constraints. Performance optimisations and I/O efficiency weren't the primary objective.
 * How to build
 
 #+begin_src bash
@@ -18,7 +23,7 @@ cmake --build build
 Example configuration (with default values):
 #+begin_src toml
 [sort]
-ram = 100 # how many tape cells can fit in the RAM
+ram = 100 # how many tape cells can be in the memory
 
 [tape]
 # delays are in milliseconds
@@ -27,14 +32,12 @@ write_delay = 20
 move_delay = 5
 #+end_src
 
-You may also want to use the ~filetape~ utility to print the tape in human-readable format:
-
+A helper utility is provided to inspect tape contents in human-readable form:
 #+begin_src bash
 ./build/filetape print <tape.bin>
 #+end_src
 
-To generate random tape of specified size I suggest to create the file populated with random data directly, where ~N~ is the desired amount of cells:
-
+Random test tapes can be generated using:
 #+begin_src bash
 dd if=/dev/urandom of=rand.bin bs=4 count=N
 #+end_src
