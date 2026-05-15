@@ -1,0 +1,2 @@
+#+title: External sort on Magnetic tape simulator
+#+author: Давид Чередник
