@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <functional>
 #include <iterator>
 #include <print>
 #include <queue>
@@ -76,7 +75,8 @@ void ExternalSort::KWayMergeTo(std::vector<std::unique_ptr<ITape>> runs, ITape *
   assert(out->Length() >= size);
 
   auto const cmp{[](ITape *t1, ITape *t2) {
-    return kComp(t1->Read(), t2->Read());
+    // Min-heap, hence the negation
+    return !kComp(t1->Read(), t2->Read());
   }};
   std::priority_queue<ITape *, std::vector<ITape *>, decltype(cmp)> heap(cmp);
 
