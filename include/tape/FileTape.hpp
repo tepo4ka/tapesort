@@ -40,8 +40,8 @@ public:
   bool AtLeftBound() const override;
   bool AtRightBound() const override;
 
-  size_t Length() const override;
-  size_t Position() const override;
+  uint64_t Length() const override;
+  uint64_t Position() const override;
 
 private:
   template <typename S>
@@ -64,5 +64,5 @@ private:
   // portable way to construct `std::fstream` from `FILE *`.
   bool should_delete_{false};
 
-  size_t head_{}, capacity_; // FIXME: which type?
+  uint64_t head_{}, capacity_;
 };

@@ -110,7 +110,7 @@ int main(int argc, char const **argv) {
   sort_conf->NewTempTape = [tape_conf = *tape_conf](uint64_t capacity) -> std::unique_ptr<ITape> {
     auto tape{FileTape::CreateTemp(tape_conf, capacity)};
     if (!tape) {
-      // FIXME
+      // There is no way to recover if we can't write to the temporary tape
       throw std::runtime_error(tape.error());
     }
 

@@ -125,10 +125,10 @@ bool FileTape::AtRightBound() const {
   return head_ == capacity_ - 1;
 }
 
-size_t FileTape::Length() const {
+uint64_t FileTape::Length() const {
   return capacity_;
 }
 
-size_t FileTape::Position() const {
+uint64_t FileTape::Position() const {
   return head_;
 }

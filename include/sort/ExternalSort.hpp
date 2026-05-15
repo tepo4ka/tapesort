@@ -12,6 +12,8 @@ class ExternalSort {
 public:
   ExternalSort(SortConfig conf, ITape *in, ITape *out);
 
+  // Sort the `in` tape in ascending order and write the result to the `out` tape. Use no more than
+  // O(RAMCells) memory in the process.
   void Sort();
 
 private:
@@ -37,7 +39,7 @@ private:
   std::unique_ptr<ITape> KWayMerge(std::vector<std::unique_ptr<ITape>> runs);
 
   // Like `KWayMerge`, but writes into `out` instead of constructing the new temporary tape.
-  void KWayMergeTo(std::vector<std::unique_ptr<ITape>> runs, ITape* out);
+  void KWayMergeTo(std::vector<std::unique_ptr<ITape>> runs, ITape *out);
 
 private:
   SortConfig conf_;
@@ -45,4 +47,7 @@ private:
   // Own only temporary tapes, but do not own input and output tapes
   ITape *in_;
   ITape *out_;
+
+  // As user cannot choose the sort order, it is better to expose the choice here
+  static auto constexpr kComp{std::less<TapeCell>{}};
 };
