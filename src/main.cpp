@@ -73,8 +73,8 @@ int main(int argc, char const **argv) {
 
   auto const cli{
       lyra::help(show_help).description("External tape sorter.") |
-      lyra::opt(input_path, "in.bin").required()["-i"]["--input"]("Input tape file") |
-      lyra::opt(output_path, "out.bin").required()["-o"]["--output"]("Output tape file") |
+      lyra::arg(input_path, "in.bin").required()("Input tape file") |
+      lyra::arg(output_path, "out.bin").required()("Output tape file") |
       lyra::opt(conf_path, "conf.toml").optional()["-c"]["--config"]("Tape config file")};
   auto const cli_result{cli.parse({argc, argv})};
 

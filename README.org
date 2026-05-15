@@ -1,2 +1,16 @@
 #+title: External sort on Magnetic tape simulator
 #+author: Давид Чередник
+
+Implementation of an external multi-pass K-way merge sort with constrained RAM and sequential tape I/O interface.
+
+* How to build
+
+#+begin_src bash
+cmake -S . -B build
+cmake --build build
+#+end_src
+* How to run
+
+#+begin_src bash
+./build/tapesort [-?|-h|--help] <in.bin> <out.bin> [-c|--config <conf.toml>]
+#+end_src
