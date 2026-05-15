@@ -1,0 +1,7 @@
+[sort]
+ram = 19
+
+[tape]
+read_delay = 0
+write_delay = 0
+move_delay = 0

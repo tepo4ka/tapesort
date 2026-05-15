@@ -12,9 +12,10 @@ ExternalSort::ExternalSort(SortConfig conf, ITape *in, ITape *out)
 }
 
 void ExternalSort::Sort() {
+  // It is not our task to create the correct output tape
+  assert(in_->Length() == out_->Length());
+
   if (in_->Length() == 0) {
-    // It is not our task to create the correct output tape
-    assert(out_->Length() == 0);
     return;
   }
   out_->RewindLeft();

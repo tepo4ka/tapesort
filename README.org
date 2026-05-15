@@ -14,6 +14,8 @@ This implementation is intended as a correct simulation of external merge sort u
 cmake -S . -B build
 cmake --build build
 #+end_src
+
+Note that linker may try to complain about the use of ~tmpnam~. This was an intentional choice, since there is no portable way to use ~FILE *~ descriptor returned by ~mkstemp~ or ~tmpfile~ with C++ file streams.
 * How to run
 
 #+begin_src bash
@@ -41,3 +43,8 @@ Random test tapes can be generated using:
 #+begin_src bash
 dd if=/dev/urandom of=rand.bin bs=4 count=N
 #+end_src
+* Tests
+
+Unit tests were not implemented. To compensate, a set of representative input cases is provided in ~example/~: each of the input must produce the correct output without any failures.
+
+Different RAM limits were tested: for example, ~ram = size - 1~, ~ram = size~, ~ram = size + 1~ and ~ram = 10 * size~.
